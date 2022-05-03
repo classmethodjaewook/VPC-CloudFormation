@@ -23,7 +23,7 @@ Metadata:
       PrivateSubnetCCIDR: 
         default: "PrivateSubnetC CIDR"
 #-------------------------------------------------------------------
-#Input VPC, Subnet Parameters & fix CIDR
+#Input VPC, Subnet Parameters & fix Subnet CIDR
 #-------------------------------------------------------------------
 Parameters:
   VPCCIDR:
