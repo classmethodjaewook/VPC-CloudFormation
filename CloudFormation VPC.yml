@@ -32,19 +32,19 @@ Parameters:
 
   PublicSubnetACIDR:
     Type: String
-    Default: "10.0.1.0/24"
+    Default: "10.0.15.0/24"
 
   PublicSubnetCCIDR:
     Type: String
-    Default: "10.0.2.0/24"
+    Default: "10.0.16.0/24"
 
   PrivateSubnetACIDR:
     Type: String
-    Default: "10.0.11.0/24"
+    Default: "10.0.25.0/24"
 
   PrivateSubnetCCIDR:
     Type: String
-    Default: "10.0.12.0/24"
+    Default: "10.0.26.0/24"
 #-------------------------------------------------------------------
 #Set VPC, InternetGateway, Subnet
 #-------------------------------------------------------------------

@@ -1,2 +1,161 @@
-test
-test2
+AWSTemplateFormatVersion: "2010-09-09"
+Description: VPC Network set
+Metadata: 
+  "AWS::CloudFormation::Interface": 
+    ParameterGroups: 
+      - Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - VPCCIDR
+          - PublicSubnetACIDR
+          - PublicSubnetCCIDR
+          - PrivateSubnetACIDR
+          - PrivateSubnetCCIDR
+    ParameterLabels: 
+      VPCCIDR: 
+        default: "VPC CIDR"
+      PublicSubnetACIDR: 
+        default: "PublicSubnetA CIDR"
+      PublicSubnetCCIDR: 
+        default: "PublicSubnetC CIDR"
+      PrivateSubnetACIDR: 
+        default: "PrivateSubnetA CIDR"
+      PrivateSubnetCCIDR: 
+        default: "PrivateSubnetC CIDR"
+#-------------------------------------------------------------------
+#Input VPC, Subnet Parameters & fix Subnet CIDR test
+#-------------------------------------------------------------------
+Parameters:
+  VPCCIDR:
+    Type: String
+    Default: "10.0.0.0/16"
+
+  PublicSubnetACIDR:
+    Type: String
+    Default: "10.0.1.0/24"
+
+  PublicSubnetCCIDR:
+    Type: String
+    Default: "10.0.2.0/24"
+
+  PrivateSubnetACIDR:
+    Type: String
+    Default: "10.0.11.0/24"
+
+  PrivateSubnetCCIDR:
+    Type: String
+    Default: "10.0.12.0/24"
+#-------------------------------------------------------------------
+#Set VPC, InternetGateway, Subnet
+#-------------------------------------------------------------------
+Resources:
+  VPC: 
+    Type: "AWS::EC2::VPC"
+    Properties: 
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      InstanceTenancy: default
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-vpc"
+  InternetGateway: 
+    Type: "AWS::EC2::InternetGateway"
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-igw"
+  InternetGatewayAttachment: 
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  PublicSubnetA: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-2a"
+      CidrBlock: !Ref PublicSubnetACIDR
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-front-subnet-1a"
+  PublicSubnetC: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-2c"
+      CidrBlock: !Ref PublicSubnetCCIDR
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-front-subnet-1c"
+  PrivateSubnetA: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-2a"
+      CidrBlock: !Ref PrivateSubnetACIDR
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-application-subnet-1a"
+  PrivateSubnetC: 
+    Type: "AWS::EC2::Subnet"
+    Properties: 
+      AvailabilityZone: "ap-northeast-2c"
+      CidrBlock: !Ref PrivateSubnetCCIDR
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-application-subnet-1c"
+#-------------------------------------------------------------------
+#Route Tables
+#-------------------------------------------------------------------
+  FRONTRTB : 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-front-rtb"
+  APPRTB1A: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-application-rtb-1a"
+  APPRTB1C: 
+    Type: "AWS::EC2::RouteTable"
+    Properties: 
+      VpcId: !Ref VPC 
+      Tags: 
+        - Key: Name
+          Value: !Sub "test-application-rtb-1c"
+  FRONTRTBroute: 
+    Type: "AWS::EC2::Route"
+    Properties: 
+      RouteTableId: !Ref FRONTRTB
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
+#-------------------------------------------------------------------
+#Route Tables Subnet Association
+#-------------------------------------------------------------------
+  FRONTRTBAssociation: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref FRONTRTB
+  FRONTRTB2Association: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PublicSubnetC
+      RouteTableId: !Ref FRONTRTB
+  APPRTB1AAssociation: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref APPRTB1A
+  APPRTB1CAssociation: 
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PrivateSubnetC
+      RouteTableId: !Ref APPRTB1C
